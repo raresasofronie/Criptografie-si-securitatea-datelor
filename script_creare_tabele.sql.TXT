@@ -1,0 +1,45 @@
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE Algoritmi (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nume TEXT NOT NULL,
+    tip TEXT CHECK(tip IN ('simetric', 'asimetric')) NOT NULL,
+    descriere TEXT
+);
+
+CREATE TABLE Chei (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    algoritm_id INTEGER NOT NULL,
+    tip_cheie TEXT CHECK(tip_cheie IN ('simetric', 'asimetric')) NOT NULL,
+    valoare_cheie1 TEXT NOT NULL,  -- Cheie unică pentru simetrici, cheie publică pentru asimetrici
+    valoare_cheie2 TEXT,           -- Doar pentru algoritmi asimetrici (ex: cheie privată RSA)
+    data_crearii TEXT DEFAULT CURRENT_TIMESTAMP,
+    data_expirarii TEXT,  -- Opțional
+    observatii TEXT,
+    FOREIGN KEY (algoritm_id) REFERENCES Algoritmi(id) ON DELETE CASCADE
+);
+
+CREATE TABLE Fisiere (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    cale_fisier TEXT NOT NULL,
+    nume_original TEXT NOT NULL,
+    dimensiune INTEGER,
+    stare TEXT CHECK(stare IN ('criptat', 'decriptat')) NOT NULL,
+    data_crearii TEXT DEFAULT CURRENT_TIMESTAMP,
+    data_actualizarii TEXT
+);
+
+CREATE TABLE Operatii (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    fisier_id INTEGER NOT NULL,
+    algoritm_id INTEGER NOT NULL,
+    cheie_id INTEGER NOT NULL,
+    tip_operatie TEXT CHECK(tip_operatie IN ('criptare', 'decriptare')) NOT NULL,
+    timp_incepere TEXT DEFAULT CURRENT_TIMESTAMP,
+    durata INTEGER,  -- Timp de execuție în milisecunde
+    rezultat BOOLEAN NOT NULL CHECK(rezultat IN (0,1)),  -- 0 = eșec, 1 = succes
+    mesaj_eroare TEXT,  -- Detalii despre erori (dacă există)
+    FOREIGN KEY (fisier_id) REFERENCES Fisiere(id) ON DELETE CASCADE,
+    FOREIGN KEY (algoritm_id) REFERENCES Algoritmi(id) ON DELETE CASCADE,
+    FOREIGN KEY (cheie_id) REFERENCES Chei(id) ON DELETE CASCADE
+);
